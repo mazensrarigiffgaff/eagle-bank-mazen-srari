@@ -4,6 +4,7 @@ import com.eaglebank.eagle_bank_api.model.BankAccountEntity;
 import com.eaglebank.eagle_bank_api.repository.BankAccountRepository;
 import com.example.project.model.BankAccountResponse;
 import com.example.project.model.CreateBankAccountRequest;
+import com.example.project.model.UpdateBankAccountRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -187,6 +188,51 @@ class BankAccountServiceTest {
                     .contains("Bank account not found while attempting deletion. Account number: " + nonExistentAccountNumber);
         }
     }
+
+    @Nested
+    @DisplayName("Update Bank Account Tests")
+    class UpdateBankAccountTests {
+        @Test
+        @DisplayName("Should update bank account successfully")
+        void shouldUpdateBankAccountSuccessfully() {
+            String accountNumber = "01234567";
+            String name = "Updated Name";
+
+            UpdateBankAccountRequest updateRequest = new UpdateBankAccountRequest();
+            updateRequest.setName(name);
+            updateRequest.setAccountType(UpdateBankAccountRequest.AccountTypeEnum.PERSONAL);
+
+            when(bankAccountRepository.findByAccountNumber(accountNumber))
+                    .thenReturn(Optional.of(bankAccountEntity));
+
+            when(bankAccountRepository.save(any(BankAccountEntity.class)))
+                    .thenReturn(bankAccountEntity);
+
+            BankAccountResponse response = bankAccountService.updateBankAccount(accountNumber, updateRequest);
+
+            assertThat(response.getName()).isEqualTo(name);
+            assertThat(response.getAccountType()).isEqualTo(BankAccountResponse.AccountTypeEnum.PERSONAL);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to update non-existent account")
+        void shouldThrowExceptionWhenTryingToUpdateNonExistentAccount() {
+            String nonExistentAccountNumber = "01999999";
+            UpdateBankAccountRequest updateRequest = new UpdateBankAccountRequest();
+            updateRequest.setName("Updated Name");
+
+            when(bankAccountRepository.findByAccountNumber(nonExistentAccountNumber))
+                    .thenReturn(Optional.empty());
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+                bankAccountService.updateBankAccount(nonExistentAccountNumber, updateRequest);
+            });
+
+            assertThat(exception.getMessage())
+                    .contains("Bank account not found with account number: " + nonExistentAccountNumber);
+        }
+    }
+
     @Nested
     @DisplayName("Helper Method Tests")
     class HelperMethodTests {

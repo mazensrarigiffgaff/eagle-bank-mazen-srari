@@ -6,6 +6,7 @@ import com.eaglebank.eagle_bank_api.model.BankAccountEntity;
 import com.eaglebank.eagle_bank_api.repository.BankAccountRepository;
 import com.example.project.model.BankAccountResponse;
 import com.example.project.model.CreateBankAccountRequest;
+import com.example.project.model.UpdateBankAccountRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -51,6 +52,21 @@ public class BankAccountService {
         bankAccountRepository.delete(account);
     }
 
+    public BankAccountResponse updateBankAccount(String accountNumber, UpdateBankAccountRequest updateRequest) {
+        validateAccountNumber(accountNumber);
+        validateUpdateBankAccountRequest(updateRequest);
+
+        BankAccountEntity existingAccount = bankAccountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found with account number: " + accountNumber));
+
+        existingAccount.setName(updateRequest.getName());
+        existingAccount.setAccountType(BankAccountResponse.AccountTypeEnum.fromValue(updateRequest.getAccountType().getValue()));
+
+        BankAccountEntity updatedAccount = bankAccountRepository.save(existingAccount);
+        return convertToResponse(updatedAccount);
+    }
+
+
     private void validateCreateBankAccountRequest(CreateBankAccountRequest request) {
         List<String> errors = new ArrayList<>();
 
@@ -63,6 +79,22 @@ public class BankAccountService {
         if (request.getAccountType() == null) {
             errors.add("Account type is required");
         } else {
+            validateAccountType(request.getAccountType().getValue(), errors);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new BadBankAccountRequestException("Validation failed: " + String.join(", ", errors));
+        }
+    }
+
+    private void validateUpdateBankAccountRequest(UpdateBankAccountRequest request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.getName() != null && request.getName().trim().length() > 100) {
+            errors.add("Name cannot exceed 100 characters");
+        }
+
+        if (request.getAccountType() != null) {
             validateAccountType(request.getAccountType().getValue(), errors);
         }
 

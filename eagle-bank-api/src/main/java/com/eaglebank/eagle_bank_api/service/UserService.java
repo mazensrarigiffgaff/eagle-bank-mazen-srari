@@ -6,6 +6,7 @@ import com.eaglebank.eagle_bank_api.model.UserEntity;
 import com.eaglebank.eagle_bank_api.repository.UserRepository;
 import com.example.project.model.CreateUserRequest;
 import com.example.project.model.CreateUserRequestAddress;
+import com.example.project.model.UpdateUserRequest;
 import com.example.project.model.UserResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,23 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User not found while attempting deletion. User ID: " + userId));
 
         userRepository.delete(userEntity);
+    }
+
+    public UserResponse updateUserDetails(String userId, UpdateUserRequest updateRequest) {
+        Long id = parseUserId(userId);
+        validateUpdateUserRequest(updateRequest);
+
+        UserEntity existingUser = userRepository
+                .findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+
+        existingUser.setName(updateRequest.getName());
+        existingUser.setEmail(updateRequest.getEmail());
+        existingUser.setPhoneNumber(updateRequest.getPhoneNumber());
+        existingUser.setAddress(serializeAddress(updateRequest.getAddress()));
+
+        UserEntity updatedUser = userRepository.save(existingUser);
+        return convertToDTOResponse(updatedUser);
     }
 
     private Long parseUserId(String userId) {
@@ -136,6 +154,37 @@ public class UserService {
             throw new BadUserRequestException("Validation failed: " + String.join(", ", errors));
         }
     }
+
+    private void validateUpdateUserRequest(UpdateUserRequest request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            errors.add("Name is required and cannot be empty");
+        }
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            errors.add("Email is required and cannot be empty");
+        } else if (!isValidEmail(request.getEmail())) {
+            errors.add("Email format is invalid");
+        }
+
+        if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+            errors.add("Phone number is required and cannot be empty");
+        } else if (!isValidPhoneNumber(request.getPhoneNumber())) {
+            errors.add("Phone number format is invalid. Expected format: +[country_code][number]");
+        }
+
+        if (request.getAddress() == null) {
+            errors.add("Address is required");
+        } else {
+            validateAddress(request.getAddress(), errors);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new BadUserRequestException("Validation failed: " + String.join(", ", errors));
+        }
+    }
+
 
     private void validateAddress(CreateUserRequestAddress address, List<String> errors) {
         if (address.getLine1() == null || address.getLine1().trim().isEmpty()) {

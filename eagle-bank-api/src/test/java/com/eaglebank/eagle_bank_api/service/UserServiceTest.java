@@ -6,6 +6,7 @@ import com.eaglebank.eagle_bank_api.model.UserEntity;
 import com.eaglebank.eagle_bank_api.repository.UserRepository;
 import com.example.project.model.CreateUserRequest;
 import com.example.project.model.CreateUserRequestAddress;
+import com.example.project.model.UpdateUserRequest;
 import com.example.project.model.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -148,4 +149,41 @@ class UserServiceTest {
         }
     }
 
+    @Nested
+    class UpdateUserTests {
+        @Test
+        void updateUserDetailsSuccessfully() {
+            Long accountId = 1L;
+            String newName = "Michelle Doe";
+            String newEmail = "jane@example.com";
+            String newPhoneNumber = "+441234567890";
+            CreateUserRequestAddress newAddressDTO = new CreateUserRequestAddress();
+
+            UpdateUserRequest updateRequest = new UpdateUserRequest();
+            updateRequest.setName(newName);
+            updateRequest.setEmail(newEmail);
+            updateRequest.setPhoneNumber(newPhoneNumber);
+            updateRequest.setAddress(newAddressDTO
+                    .county("Greater London")
+                    .line1("123 Main St")
+                    .postcode("E1 6AN")
+                    .town("London"));
+
+            when(userRepository.findById(accountId))
+                    .thenReturn(Optional.of(savedEntity));
+
+            when(userRepository.save(any(UserEntity.class)))
+                    .thenReturn(savedEntity);
+
+            UserResponse response = userService.updateUserDetails("usr-1", updateRequest);
+
+            assertThat(response.getName()).isEqualTo(newName);
+            assertThat(response.getEmail()).isEqualTo(newEmail);
+            assertThat(response.getPhoneNumber()).isEqualTo(newPhoneNumber);
+            assertThat(response.getAddress().getLine1()).isEqualTo("123 Main St");
+            assertThat(response.getAddress().getTown()).isEqualTo("London");
+            assertThat(response.getAddress().getCounty()).isEqualTo("Greater London");
+            assertThat(response.getAddress().getPostcode()).isEqualTo("E1 6AN");
+        }
+    }
 }

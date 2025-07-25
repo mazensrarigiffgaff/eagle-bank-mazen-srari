@@ -3,6 +3,7 @@ package com.eaglebank.eagle_bank_api.controller;
 import com.eaglebank.eagle_bank_api.service.BankAccountService;
 import com.example.project.model.BankAccountResponse;
 import com.example.project.model.CreateBankAccountRequest;
+import com.example.project.model.UpdateBankAccountRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -118,6 +119,25 @@ class BankAccountControllerTest {
             ResponseEntity<Void> response = bankAccountController._deleteAccountByAccountNumber(accountNumber);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @Nested
+    class UpdateBankAccountTests {
+        @Test
+        @DisplayName("Should update bank account by account number successfully")
+        void shouldUpdateBankAccountByAccountNumberSuccessfully() {
+            String accountNumber = "01234567";
+            UpdateBankAccountRequest updateRequest = new UpdateBankAccountRequest();
+            updateRequest.setName("Updated Account Name");
+            updateRequest.setAccountType(UpdateBankAccountRequest.AccountTypeEnum.PERSONAL);
+
+            when(bankAccountService.updateBankAccount(accountNumber, updateRequest))
+                    .thenReturn(bankAccountResponse);
+
+            ResponseEntity<BankAccountResponse> response = bankAccountController._updateAccountByAccountNumber(accountNumber, updateRequest);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         }
     }
 

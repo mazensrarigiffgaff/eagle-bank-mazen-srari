@@ -3,6 +3,7 @@ package com.eaglebank.eagle_bank_api.controller;
 import com.eaglebank.eagle_bank_api.service.UserService;
 import com.example.project.api.V1Api;
 import com.example.project.model.CreateUserRequest;
+import com.example.project.model.UpdateUserRequest;
 import com.example.project.model.UserResponse;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
@@ -36,6 +37,14 @@ public class UserController implements V1Api {
     public ResponseEntity<Void> _deleteUserByID(@PathVariable @Pattern(regexp = "^usr-[A-Za-z0-9]+$") String userId) {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/v1/users/{userId}")
+    @Override
+    public ResponseEntity<UserResponse> _updateUserByID(@PathVariable @Pattern(regexp = "^usr-[A-Za-z0-9]+$") String userId,
+                                                        @Valid @RequestBody UpdateUserRequest body) {
+        UserResponse updatedResponse = userService.updateUserDetails(userId, body);
+        return ResponseEntity.ok(updatedResponse);
     }
 
 }

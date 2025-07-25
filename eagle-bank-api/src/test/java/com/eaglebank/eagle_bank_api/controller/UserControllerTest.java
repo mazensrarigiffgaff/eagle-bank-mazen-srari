@@ -4,6 +4,7 @@ import com.eaglebank.eagle_bank_api.exception.BadUserRequestException;
 import com.eaglebank.eagle_bank_api.exception.UserNotFoundException;
 import com.eaglebank.eagle_bank_api.service.UserService;
 import com.example.project.model.CreateUserRequest;
+import com.example.project.model.UpdateUserRequest;
 import com.example.project.model.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,11 +34,13 @@ class UserControllerTest {
 
     private UserResponse userResponse;
     private CreateUserRequest createUserRequest;
+    private UpdateUserRequest updateUserRequest = new UpdateUserRequest();
 
     @BeforeEach
     void setUp() {
         userResponse = new UserResponse();
         createUserRequest = new CreateUserRequest();
+        updateUserRequest = new UpdateUserRequest();
     }
 
     @Nested
@@ -118,6 +121,23 @@ class UserControllerTest {
             ResponseEntity<Void> response = userController._deleteUserByID(userId);
 
             assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        }
+    }
+
+    @Nested
+    class UpdateUserByIDTests {
+
+        @Test
+        @DisplayName("Should update user details by ID successfully")
+        void updateUserByIdSuccessfully() {
+            String userId = "usr-123";
+            when(userService.updateUserDetails(any(String.class), any(UpdateUserRequest.class))).thenReturn(userResponse);
+
+            ResponseEntity<UserResponse> response = userController._updateUserByID(userId, updateUserRequest);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+            assertNotNull(response.getBody());
+            assertThat(response.getBody()).usingRecursiveComparison().isEqualTo(userResponse);
         }
     }
 }

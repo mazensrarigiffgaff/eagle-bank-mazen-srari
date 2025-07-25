@@ -4,6 +4,7 @@ import com.eaglebank.eagle_bank_api.service.BankAccountService;
 import com.example.project.api.V1Api;
 import com.example.project.model.BankAccountResponse;
 import com.example.project.model.CreateBankAccountRequest;
+import com.example.project.model.UpdateBankAccountRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,14 @@ public class BankAccountController implements V1Api {
     public ResponseEntity<Void> _deleteAccountByAccountNumber(@PathVariable @Pattern(regexp = "^01\\d{6}$") String accountNumber) {
         bankAccountService.deleteBankAccount(accountNumber);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/v1/accounts/{accountNumber}")
+    @Override
+    public ResponseEntity<BankAccountResponse> _updateAccountByAccountNumber(@PathVariable @Pattern(regexp = "^01\\d{6}$") String accountNumber,
+                                                                            @Valid @RequestBody UpdateBankAccountRequest body) {
+        BankAccountResponse updatedResponse = bankAccountService.updateBankAccount(accountNumber, body);
+        return ResponseEntity.ok(updatedResponse);
     }
 
 }
