@@ -31,4 +31,11 @@ public class UserController implements V1Api {
         return ResponseEntity.ok(userService.fetchUserById(userId));
     }
 
+    @DeleteMapping("/v1/users/{userId}")
+    @Override
+    public ResponseEntity<Void> _deleteUserByID(@PathVariable @Pattern(regexp = "^usr-[A-Za-z0-9]+$") String userId) {
+        userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
 }

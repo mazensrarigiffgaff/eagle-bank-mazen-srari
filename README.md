@@ -14,14 +14,16 @@ Eagle Bank API is a Spring Boot application that allows users to create and mana
 - **User Management**
   - Create new users 
   - Fetch user details by ID
+  - Delete users by ID
   
 - **Bank Account Management**
   - Create new bank accounts linked to users
   - Fetch bank account details by account number
+  - Delete bank accounts by account number
 
 ### Planned Features (Not Yet Implemented)
 - Account listing
-- Account updates and deletion
+- Account updates
 - Transaction management (deposits, withdrawals)
 - Transaction history
 - Authentication & authorization
@@ -38,7 +40,7 @@ Eagle Bank API is a Spring Boot application that allows users to create and mana
 
 ### Base URL
 ```
-http://localhost:8080/api
+http://localhost:8080/
 ```
 
 ### Available Endpoints
@@ -46,10 +48,12 @@ http://localhost:8080/api
 #### Users
 - `POST /v1/users` - Create a new user
 - `GET /v1/users/{userId}` - Fetch user by ID (format: `usr-[A-Za-z0-9]+`)
+- `DELETE /v1/users/{userId}` - Delete user by ID (format: `usr-[A-Za-z0-9]+`)
 
 #### Bank Accounts
 - `POST /v1/accounts` - Create a new bank account
 - `GET /v1/accounts/{accountNumber}` - Fetch account by account number (format: `01XXXXXX`)
+- `DELETE /v1/accounts/{accountNumber}` - Delete account by account number (format: `01XXXXXX`)
 
 ### API Documentation URLs
 - **Swagger UI**: http://localhost:8080/api/swagger-ui.html
@@ -135,7 +139,7 @@ Health checks and metrics are available via Spring Boot Actuator:
 
 ## Testing
 
-The project includes comprehensive test coverage:
+The project includes unit test coverage:
 
 - **Controller Tests**: API endpoint testing
 - **Service Tests**: Business logic testing

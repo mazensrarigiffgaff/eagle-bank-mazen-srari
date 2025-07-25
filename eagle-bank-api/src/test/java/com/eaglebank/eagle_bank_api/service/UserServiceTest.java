@@ -9,6 +9,7 @@ import com.example.project.model.CreateUserRequestAddress;
 import com.example.project.model.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -58,67 +59,93 @@ class UserServiceTest {
         savedEntity.setUpdatedTimestamp(OffsetDateTime.now());
     }
 
-    @Test
-    @DisplayName("Should create user successfully")
-    void createUserSuccessfully() {
-        when(userRepository.save(any(UserEntity.class))).thenReturn(savedEntity);
+    @Nested
+    class CreateUserTests {
+        @Test
+        @DisplayName("Should create user successfully")
+        void createUserSuccessfully() {
+            when(userRepository.save(any(UserEntity.class))).thenReturn(savedEntity);
 
-        UserResponse response = userService.createUser(createUserRequest);
+            UserResponse response = userService.createUser(createUserRequest);
 
-        assertThat(response.getId()).isEqualTo("1");
-        assertThat(response.getName()).isEqualTo("Jane Doe");
-        assertThat(response.getEmail()).isEqualTo("jane@example.com");
-        assertThat(response.getPhoneNumber()).isEqualTo("+441234567890");
-        assertThat(response.getAddress().getLine1()).isEqualTo("123 Main St");
+            assertThat(response.getId()).isEqualTo("1");
+            assertThat(response.getName()).isEqualTo("Jane Doe");
+            assertThat(response.getEmail()).isEqualTo("jane@example.com");
+            assertThat(response.getPhoneNumber()).isEqualTo("+441234567890");
+            assertThat(response.getAddress().getLine1()).isEqualTo("123 Main St");
 
-        ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
-        verify(userRepository).save(captor.capture());
+            ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);
+            verify(userRepository).save(captor.capture());
 
-        UserEntity captured = captor.getValue();
-        assertThat(captured.getName()).isEqualTo("Jane Doe");
-        assertThat(captured.getAddress()).contains("Main St");
+            UserEntity captured = captor.getValue();
+            assertThat(captured.getName()).isEqualTo("Jane Doe");
+            assertThat(captured.getAddress()).contains("Main St");
+        }
+
+        @Test
+        void createUserThrowsForNullRequest() {
+            assertThatThrownBy(() -> userService.createUser(null))
+                    .isInstanceOf(BadUserRequestException.class)
+                    .hasMessageContaining("Bad request: create user request must be valid");
+        }
     }
 
-    @Test
-    void createUserThrowsForNullRequest() {
-        assertThatThrownBy(() -> userService.createUser(null))
-                .isInstanceOf(BadUserRequestException.class)
-                .hasMessageContaining("Bad request: create user request must be valid");
+    @Nested
+    class FetchUserByIdTests {
+        @Test
+        void fetchUserByIdSuccessfully() {
+            when(userRepository.findById(1L)).thenReturn(Optional.of(savedEntity));
+
+            UserResponse response = userService.fetchUserById("usr-1");
+
+            assertThat(response.getId()).isEqualTo("1");
+            assertThat(response.getName()).isEqualTo("Jane Doe");
+            assertThat(response.getAddress().getPostcode()).isEqualTo("E1 6AN");
+        }
+
+        @Test
+        void fetchUserByIdThrowsForInvalidPrefix() {
+            assertThatThrownBy(() -> userService.fetchUserById("abc-123"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid user ID format");
+        }
+
+        @Test
+        void fetchUserByIdThrowsForNonNumericId() {
+            assertThatThrownBy(() -> userService.fetchUserById("usr-abc"))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid numeric part");
+        }
+
+        @Test
+        void fetchUserByIdThrowsWhenUserNotFound() {
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.fetchUserById("usr-99"))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessageContaining("User not found with ID: usr-99");
+        }
     }
 
-    @Test
-    void fetchUserByIdSuccessfully() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(savedEntity));
+    @Nested
+    class DeleteUserTests {
+        @Test
+        void deleteUserSuccessfully() {
+            when(userRepository.findById(1L)).thenReturn(Optional.of(savedEntity));
 
-        UserResponse response = userService.fetchUserById("usr-1");
+            userService.deleteUser("usr-1");
 
-        assertThat(response.getId()).isEqualTo("1");
-        assertThat(response.getName()).isEqualTo("Jane Doe");
-        assertThat(response.getAddress().getPostcode()).isEqualTo("E1 6AN");
+            verify(userRepository).delete(savedEntity);
+        }
+
+        @Test
+        void deleteUserThrowsWhenUserNotFound() {
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.deleteUser("usr-99"))
+                    .isInstanceOf(UserNotFoundException.class)
+                    .hasMessageContaining("User not found while attempting deletion. User ID: usr-99");
+        }
     }
-
-    @Test
-    void fetchUserByIdThrowsForInvalidPrefix() {
-        assertThatThrownBy(() -> userService.fetchUserById("abc-123"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid user ID format");
-    }
-
-    @Test
-    void fetchUserByIdThrowsForNonNumericId() {
-        assertThatThrownBy(() -> userService.fetchUserById("usr-abc"))
-                .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid numeric part");
-    }
-
-    @Test
-    void fetchUserByIdThrowsWhenUserNotFound() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
-
-        assertThatThrownBy(() -> userService.fetchUserById("usr-99"))
-                .isInstanceOf(UserNotFoundException.class)
-                .hasMessageContaining("User not found with ID: usr-99");
-    }
-
 
 }

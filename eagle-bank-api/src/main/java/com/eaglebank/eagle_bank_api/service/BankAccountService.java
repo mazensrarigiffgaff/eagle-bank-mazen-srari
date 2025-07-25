@@ -42,6 +42,15 @@ public class BankAccountService {
         return convertToResponse(account);
     }
 
+    public void deleteBankAccount(String accountNumber) {
+        validateAccountNumber(accountNumber);
+
+        BankAccountEntity account = bankAccountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new BankAccountNotFoundException("Bank account not found while attempting deletion. Account number: " + accountNumber));
+
+        bankAccountRepository.delete(account);
+    }
+
     private void validateCreateBankAccountRequest(CreateBankAccountRequest request) {
         List<String> errors = new ArrayList<>();
 

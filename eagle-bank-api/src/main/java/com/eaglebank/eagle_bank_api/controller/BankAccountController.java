@@ -32,4 +32,12 @@ public class BankAccountController implements V1Api {
         BankAccountResponse response = bankAccountService.fetchByAccountNumber(accountNumber);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/v1/accounts/{accountNumber}")
+    @Override
+    public ResponseEntity<Void> _deleteAccountByAccountNumber(@PathVariable @Pattern(regexp = "^01\\d{6}$") String accountNumber) {
+        bankAccountService.deleteBankAccount(accountNumber);
+        return ResponseEntity.noContent().build();
+    }
+
 }

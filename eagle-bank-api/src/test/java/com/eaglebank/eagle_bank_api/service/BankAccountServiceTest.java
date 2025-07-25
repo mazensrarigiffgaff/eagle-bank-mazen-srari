@@ -156,6 +156,38 @@ class BankAccountServiceTest {
     }
 
     @Nested
+    @DisplayName("Delete Bank Account Tests")
+    class DeleteBankAccountTests {
+        @Test
+        @DisplayName("Should delete bank account by account number successfully")
+        void shouldDeleteBankAccountByAccountNumberSuccessfully() {
+            String accountNumber = "01234567";
+
+            when(bankAccountRepository.findByAccountNumber(accountNumber))
+                    .thenReturn(Optional.of(bankAccountEntity));
+
+            bankAccountService.deleteBankAccount(accountNumber);
+
+            verify(bankAccountRepository).delete(bankAccountEntity);
+        }
+
+        @Test
+        @DisplayName("Should throw exception when trying to delete non-existent account")
+        void shouldThrowExceptionWhenTryingToDeleteNonExistentAccount() {
+            String nonExistentAccountNumber = "01999999";
+
+            when(bankAccountRepository.findByAccountNumber(nonExistentAccountNumber))
+                    .thenReturn(Optional.empty());
+
+            RuntimeException exception = assertThrows(RuntimeException.class, () -> {
+                bankAccountService.deleteBankAccount(nonExistentAccountNumber);
+            });
+
+            assertThat(exception.getMessage())
+                    .contains("Bank account not found while attempting deletion. Account number: " + nonExistentAccountNumber);
+        }
+    }
+    @Nested
     @DisplayName("Helper Method Tests")
     class HelperMethodTests {
 

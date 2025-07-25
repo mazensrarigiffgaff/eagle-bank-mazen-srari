@@ -71,7 +71,6 @@ class UserControllerTest {
 
     }
 
-
     @Nested
     class FetchUserByIDTests {
 
@@ -104,6 +103,21 @@ class UserControllerTest {
             });
 
             assertThat(exception.getMessage()).contains(expectedMessage);
+        }
+    }
+
+    @Nested
+    class DeleteUserByIDTests {
+
+        @Test
+        @DisplayName("Should delete user by ID successfully")
+        void deleteUserByIdSuccessfully() {
+
+            String userId = "usr-123";
+
+            ResponseEntity<Void> response = userController._deleteUserByID(userId);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         }
     }
 }

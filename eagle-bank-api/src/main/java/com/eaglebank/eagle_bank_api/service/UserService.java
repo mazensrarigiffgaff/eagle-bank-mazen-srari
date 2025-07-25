@@ -46,6 +46,16 @@ public class UserService {
         return convertToDTOResponse(userEntity);
     }
 
+    public void deleteUser(String userId) {
+        Long id = parseUserId(userId);
+
+        UserEntity userEntity = userRepository
+                .findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User not found while attempting deletion. User ID: " + userId));
+
+        userRepository.delete(userEntity);
+    }
+
     private Long parseUserId(String userId) {
         if (userId == null || !userId.startsWith("usr-")) {
             throw new IllegalArgumentException("Invalid user ID format. Expected format: usr-<number>");

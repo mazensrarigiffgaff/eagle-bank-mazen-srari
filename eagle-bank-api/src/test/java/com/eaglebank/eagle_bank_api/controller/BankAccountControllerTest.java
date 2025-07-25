@@ -109,6 +109,18 @@ class BankAccountControllerTest {
 
     }
 
+    @Nested
+    class DeleteBankAccountTests {
+        @Test
+        @DisplayName("Should delete bank account by account number successfully")
+        void shouldDeleteBankAccountByAccountNumberSuccessfully() {
+            String accountNumber = "01234567";
+            ResponseEntity<Void> response = bankAccountController._deleteAccountByAccountNumber(accountNumber);
+
+            assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        }
+    }
+
     private BankAccountResponse createMockBankAccountResponse() {
         BankAccountResponse response = new BankAccountResponse();
         response.setAccountNumber("01234567");
