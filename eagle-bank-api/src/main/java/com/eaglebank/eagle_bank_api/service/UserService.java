@@ -11,6 +11,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserService {
@@ -25,8 +27,10 @@ public class UserService {
 
     public UserResponse createUser(CreateUserRequest createUserRequest) {
         if (createUserRequest == null) {
-                throw new BadUserRequestException("Bad request: create user request must be valid");
+            throw new BadUserRequestException("Bad request: create user request must be valid");
         }
+
+        validateCreateUserRequest(createUserRequest);
 
         UserEntity savedEntity = userRepository.save(convertToEntity(createUserRequest));
         return convertToDTOResponse(savedEntity);
@@ -41,8 +45,6 @@ public class UserService {
 
         return convertToDTOResponse(userEntity);
     }
-
-    // === Private Helpers ===
 
     private Long parseUserId(String userId) {
         if (userId == null || !userId.startsWith("usr-")) {
@@ -59,12 +61,12 @@ public class UserService {
     }
 
     private UserEntity convertToEntity(CreateUserRequest request) {
-        UserEntity entity = new UserEntity();
-        entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
-        entity.setPhoneNumber(request.getPhoneNumber());
-        entity.setAddress(serializeAddress(request.getAddress()));
-        return entity;
+        return UserEntity.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .address(serializeAddress(request.getAddress()))
+                .build();
     }
 
     private UserResponse convertToDTOResponse(UserEntity entity) {
@@ -93,5 +95,58 @@ public class UserService {
         } catch (IOException e) {
             throw new RuntimeException("Failed to deserialize address", e);
         }
+    }
+
+    private void validateCreateUserRequest(CreateUserRequest request) {
+        List<String> errors = new ArrayList<>();
+
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            errors.add("Name is required and cannot be empty");
+        }
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            errors.add("Email is required and cannot be empty");
+        } else if (!isValidEmail(request.getEmail())) {
+            errors.add("Email format is invalid");
+        }
+
+        if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+            errors.add("Phone number is required and cannot be empty");
+        } else if (!isValidPhoneNumber(request.getPhoneNumber())) {
+            errors.add("Phone number format is invalid. Expected format: +[country_code][number]");
+        }
+
+        if (request.getAddress() == null) {
+            errors.add("Address is required");
+        } else {
+            validateAddress(request.getAddress(), errors);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new BadUserRequestException("Validation failed: " + String.join(", ", errors));
+        }
+    }
+
+    private void validateAddress(CreateUserRequestAddress address, List<String> errors) {
+        if (address.getLine1() == null || address.getLine1().trim().isEmpty()) {
+            errors.add("Address line 1 is required");
+        }
+        if (address.getTown() == null || address.getTown().trim().isEmpty()) {
+            errors.add("Town is required");
+        }
+        if (address.getCounty() == null || address.getCounty().trim().isEmpty()) {
+            errors.add("County is required");
+        }
+        if (address.getPostcode() == null || address.getPostcode().trim().isEmpty()) {
+            errors.add("Postcode is required");
+        }
+    }
+
+    private boolean isValidEmail(String email) {
+        return email.matches("^[A-Za-z0-9+_.-]+@([A-Za-z0-9.-]+\\.[A-Za-z]{2,})$");
+    }
+
+    private boolean isValidPhoneNumber(String phoneNumber) {
+        return phoneNumber.matches("^\\+[1-9]\\d{1,14}$");
     }
 }

@@ -8,6 +8,7 @@ import com.example.project.model.CreateUserRequest;
 import com.example.project.model.CreateUserRequestAddress;
 import com.example.project.model.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -38,25 +39,27 @@ class UserServiceTest {
         CreateUserRequestAddress address = new CreateUserRequestAddress();
         address.setLine1("123 Main St");
         address.setTown("London");
+        address.setCounty("Greater London");
         address.setPostcode("E1 6AN");
 
         createUserRequest = new CreateUserRequest();
         createUserRequest.setName("Jane Doe");
         createUserRequest.setEmail("jane@example.com");
-        createUserRequest.setPhoneNumber("1234567890");
+        createUserRequest.setPhoneNumber("+441234567890");
         createUserRequest.setAddress(address);
 
         savedEntity = new UserEntity();
         savedEntity.setId(1L);
         savedEntity.setName("Jane Doe");
         savedEntity.setEmail("jane@example.com");
-        savedEntity.setPhoneNumber("1234567890");
-        savedEntity.setAddress("{\"line1\":\"123 Main St\",\"town\":\"London\",\"postcode\":\"E1 6AN\"}");
+        savedEntity.setPhoneNumber("+441234567890");
+        savedEntity.setAddress("{\"line1\":\"123 Main St\",\"town\":\"London\",\"county\":\"Greater London\",\"postcode\":\"E1 6AN\"}");
         savedEntity.setCreatedTimestamp(OffsetDateTime.now());
         savedEntity.setUpdatedTimestamp(OffsetDateTime.now());
     }
 
     @Test
+    @DisplayName("Should create user successfully")
     void createUserSuccessfully() {
         when(userRepository.save(any(UserEntity.class))).thenReturn(savedEntity);
 
@@ -65,7 +68,7 @@ class UserServiceTest {
         assertThat(response.getId()).isEqualTo("1");
         assertThat(response.getName()).isEqualTo("Jane Doe");
         assertThat(response.getEmail()).isEqualTo("jane@example.com");
-        assertThat(response.getPhoneNumber()).isEqualTo("1234567890");
+        assertThat(response.getPhoneNumber()).isEqualTo("+441234567890");
         assertThat(response.getAddress().getLine1()).isEqualTo("123 Main St");
 
         ArgumentCaptor<UserEntity> captor = ArgumentCaptor.forClass(UserEntity.class);

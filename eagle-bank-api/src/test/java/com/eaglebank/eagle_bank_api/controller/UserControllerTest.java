@@ -1,10 +1,12 @@
 package com.eaglebank.eagle_bank_api.controller;
 
+import com.eaglebank.eagle_bank_api.exception.BadUserRequestException;
 import com.eaglebank.eagle_bank_api.exception.UserNotFoundException;
 import com.eaglebank.eagle_bank_api.service.UserService;
 import com.example.project.model.CreateUserRequest;
 import com.example.project.model.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +44,7 @@ class UserControllerTest {
     class CreateUserTests {
 
         @Test
+        @DisplayName("Should create new user successfully")
         void createNewUserSuccessfully() {
             when(userService.createUser(any(CreateUserRequest.class))).thenReturn(userResponse);
 
@@ -53,59 +56,15 @@ class UserControllerTest {
         }
 
         @Test
-        void createNewUserThrowsExceptionWhenRequestHasInvalidName() {
-
-            CreateUserRequest invalidRequest = new CreateUserRequest();
-            invalidRequest.setName("");
-
-            String expectedMessage = "Invalid user request";
-
+        @DisplayName("Should throw exception when user creation fails")
+        void createUserThrowsExceptionWhenCreationFails() {
+            String expectedMessage = "Invalid user data";
             when(userService.createUser(any(CreateUserRequest.class)))
-                    .thenThrow(new IllegalArgumentException(expectedMessage));
+                    .thenThrow(new BadUserRequestException(expectedMessage));
 
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                userController._createUser(invalidRequest);
+            BadUserRequestException exception = assertThrows(BadUserRequestException.class, () -> {
+                userController._createUser(createUserRequest);
             });
-
-            assertThat(exception.getMessage()).contains(expectedMessage);
-        }
-
-        @Test
-        void createNewUserThrowsExceptionWhenRequestHasInvalidEmail() {
-
-            CreateUserRequest invalidRequest = new CreateUserRequest();
-            invalidRequest.setName("John Doe");
-            invalidRequest.setEmail("");
-
-            String expectedMessage = "Invalid user request";
-
-            when(userService.createUser(any(CreateUserRequest.class)))
-                    .thenThrow(new IllegalArgumentException(expectedMessage));
-
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                userController._createUser(invalidRequest);
-            });
-
-            assertThat(exception.getMessage()).contains(expectedMessage);
-        }
-
-        @Test
-        void createNewUserThrowsExceptionWhenRequestHasInvalidPhoneNumber() {
-
-            CreateUserRequest invalidRequest = new CreateUserRequest();
-            invalidRequest.setName("John Doe");
-            invalidRequest.setEmail("john.doe@gmail.com");
-            invalidRequest.setPhoneNumber("");
-
-            String expectedMessage = "Invalid user request";
-
-            when(userService.createUser(any(CreateUserRequest.class)))
-                    .thenThrow(new IllegalArgumentException(expectedMessage));
-
-            IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-                        userController._createUser(invalidRequest);
-                    }
-            );
 
             assertThat(exception.getMessage()).contains(expectedMessage);
         }
@@ -117,6 +76,7 @@ class UserControllerTest {
     class FetchUserByIDTests {
 
         @Test
+        @DisplayName("Should fetch user by ID successfully")
         void fetchUserByIdSuccessfully() {
 
             String userId = "usr-123";
@@ -130,6 +90,7 @@ class UserControllerTest {
         }
 
         @Test
+        @DisplayName("Should throw exception when user not found by ID")
         void fetchUserByIdThrowsExceptionWhenUserNotFound() {
 
             String nonExistentUserId = "usr-non-existent-user";
