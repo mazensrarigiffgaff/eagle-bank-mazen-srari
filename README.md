@@ -6,7 +6,7 @@ A REST API for Eagle Bank that provides basic banking operations including user 
 
 Eagle Bank API is a Spring Boot application that allows users to create and manage bank accounts. This is a test project created by Mazen Srari that demonstrates modern Spring Boot development practices with comprehensive validation, testing, and API documentation.
 
-**Current Status**: This implementation includes user and bank account creation/retrieval functionality. Transaction APIs are not yet implemented.
+**Current Status**: This implementation includes user and bank account CRUD functionality. Transaction APIs are not yet implemented.
 
 ## Features
 
